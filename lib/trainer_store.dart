@@ -28,39 +28,43 @@ class TrainerStore extends ChangeNotifier {
       'teams',
       jsonEncode(teams.map((e) => e.toJson()).toList()),
     );
+  }
+
+  void _changed() {
     notifyListeners();
+    _save();
   }
 
   void toggle(int id) {
     favorites.contains(id) ? favorites.remove(id) : favorites.add(id);
-    _save();
+    _changed();
   }
 
   void addTeam(String name) {
     teams.add(Team(name: name, members: []));
-    _save();
+    _changed();
   }
 
   void rename(int i, String name) {
     teams[i].name = name;
-    _save();
+    _changed();
   }
 
   void delete(int i) {
     teams.removeAt(i);
-    _save();
+    _changed();
   }
 
   bool addMember(int i, int id) {
     if (teams[i].members.length >= 6 || teams[i].members.contains(id))
       return false;
     teams[i].members.add(id);
-    _save();
+    _changed();
     return true;
   }
 
   void removeMember(int i, int id) {
     teams[i].members.remove(id);
-    _save();
+    _changed();
   }
 }

@@ -652,36 +652,40 @@ class _SearchPageState extends State<SearchPage> {
 class FavoritesPage extends StatelessWidget {
   const FavoritesPage({super.key});
   @override
-  Widget build(BuildContext context) {
-    final ids = trainer.favorites.toList()..sort();
-    return Column(
-      children: [
-        const PageTitle('Álbum brillante', 'Tus encuentros favoritos'),
-        Expanded(
-          child: ids.isEmpty
-              ? const EmptyCamp('Marca estrellas para llenar tu álbum')
-              : GridView.builder(
-                  padding: const EdgeInsets.all(12),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: .82,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: trainer,
+    builder: (context, _) {
+      final ids = trainer.favorites.toList()..sort();
+      return Column(
+        children: [
+          const PageTitle('Álbum brillante', 'Tus encuentros favoritos'),
+          Expanded(
+            child: ids.isEmpty
+                ? const EmptyCamp('Marca estrellas para llenar tu álbum')
+                : GridView.builder(
+                    padding: const EdgeInsets.all(12),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: .82,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                        ),
+                    itemCount: ids.length,
+                    itemBuilder: (_, i) => FutureBuilder<Pokemon>(
+                      future: api.get(ids[i]),
+                      builder: (_, s) => s.hasData
+                          ? PokemonCard(s.data!)
+                          : const Card(
+                              child: Center(child: CircularProgressIndicator()),
+                            ),
+                    ),
                   ),
-                  itemCount: ids.length,
-                  itemBuilder: (_, i) => FutureBuilder<Pokemon>(
-                    future: api.get(ids[i]),
-                    builder: (_, s) => s.hasData
-                        ? PokemonCard(s.data!)
-                        : const Card(
-                            child: Center(child: CircularProgressIndicator()),
-                          ),
-                  ),
-                ),
-        ),
-      ],
-    );
-  }
+          ),
+        ],
+      );
+    },
+  );
 }
 
 class TeamsPage extends StatelessWidget {
@@ -717,118 +721,121 @@ class TeamsPage extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      PageTitle(
-        'Campamento',
-        'Hasta 6 compañeros por equipo',
-        trailing: IconButton.filled(
-          onPressed: () => teamDialog(context),
-          icon: const Icon(Icons.add),
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: trainer,
+    builder: (context, _) => Column(
+      children: [
+        PageTitle(
+          'Campamento',
+          'Hasta 6 compañeros por equipo',
+          trailing: IconButton.filled(
+            onPressed: () => teamDialog(context),
+            icon: const Icon(Icons.add),
+          ),
         ),
-      ),
-      Expanded(
-        child: trainer.teams.isEmpty
-            ? const EmptyCamp('Crea tu primer equipo de aventura')
-            : ListView.builder(
-                padding: const EdgeInsets.all(12),
-                itemCount: trainer.teams.length,
-                itemBuilder: (_, i) {
-                  final t = trainer.teams[i];
-                  return Card(
-                    color: const Color(0xfffff6cf),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(22),
-                      side: const BorderSide(
-                        color: Color(0xff8eb660),
-                        width: 3,
+        Expanded(
+          child: trainer.teams.isEmpty
+              ? const EmptyCamp('Crea tu primer equipo de aventura')
+              : ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: trainer.teams.length,
+                  itemBuilder: (_, i) {
+                    final t = trainer.teams[i];
+                    return Card(
+                      color: const Color(0xfffff6cf),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(22),
+                        side: const BorderSide(
+                          color: Color(0xff8eb660),
+                          width: 3,
+                        ),
                       ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  t.name,
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
-                              ),
-                              Text('${t.members.length}/6'),
-                              IconButton(
-                                onPressed: () => teamDialog(context, edit: i),
-                                icon: const Icon(Icons.edit),
-                              ),
-                              IconButton(
-                                onPressed: () => trainer.delete(i),
-                                icon: const Icon(Icons.delete_outline),
-                              ),
-                            ],
-                          ),
-                          SizedBox(
-                            height: 76,
-                            child: Row(
-                              children: List.generate(6, (slot) {
-                                final filled = slot < t.members.length;
-                                return Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(3),
-                                    child: InkWell(
-                                      onLongPress: filled
-                                          ? () => trainer.removeMember(
-                                              i,
-                                              t.members[slot],
-                                            )
-                                          : null,
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: filled
-                                              ? const Color(0xffdbeeb7)
-                                              : const Color(0xffeadfb8),
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          border: Border.all(
-                                            color: const Color(0xff8b7750),
-                                            width: 2,
-                                          ),
-                                        ),
-                                        child: filled
-                                            ? Image.network(
-                                                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${t.members[slot]}.png',
-                                              )
-                                            : const Icon(
-                                                Icons.catching_pokemon,
-                                                color: Color(0xffb5a67c),
-                                              ),
-                                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    t.name,
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w900,
                                     ),
                                   ),
-                                );
-                              }),
+                                ),
+                                Text('${t.members.length}/6'),
+                                IconButton(
+                                  onPressed: () => teamDialog(context, edit: i),
+                                  icon: const Icon(Icons.edit),
+                                ),
+                                IconButton(
+                                  onPressed: () => trainer.delete(i),
+                                  icon: const Icon(Icons.delete_outline),
+                                ),
+                              ],
                             ),
-                          ),
-                          if (t.members.isNotEmpty)
-                            const Text(
-                              'Mantén presionado para retirar',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.black54,
+                            SizedBox(
+                              height: 76,
+                              child: Row(
+                                children: List.generate(6, (slot) {
+                                  final filled = slot < t.members.length;
+                                  return Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(3),
+                                      child: InkWell(
+                                        onLongPress: filled
+                                            ? () => trainer.removeMember(
+                                                i,
+                                                t.members[slot],
+                                              )
+                                            : null,
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: filled
+                                                ? const Color(0xffdbeeb7)
+                                                : const Color(0xffeadfb8),
+                                            borderRadius: BorderRadius.circular(
+                                              14,
+                                            ),
+                                            border: Border.all(
+                                              color: const Color(0xff8b7750),
+                                              width: 2,
+                                            ),
+                                          ),
+                                          child: filled
+                                              ? Image.network(
+                                                  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${t.members[slot]}.png',
+                                                )
+                                              : const Icon(
+                                                  Icons.catching_pokemon,
+                                                  color: Color(0xffb5a67c),
+                                                ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }),
                               ),
                             ),
-                        ],
+                            if (t.members.isNotEmpty)
+                              const Text(
+                                'Mantén presionado para retirar',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
-              ),
-      ),
-    ],
+                    );
+                  },
+                ),
+        ),
+      ],
+    ),
   );
 }
 
